@@ -12,11 +12,38 @@ class MainViewModel(
     private val repository: Repository
 ): ViewModel() {
     val myResponse: MutableLiveData<Response<Post>> = MutableLiveData()
+    val myResponse2: MutableLiveData<Response<Post>> = MutableLiveData()
 
     fun getPost() {
         viewModelScope.launch {
             val response: Response<Post> = repository.getPost()
             myResponse.value = response
         }
+    }
+
+    fun getPost2(number: Int) {
+        viewModelScope.launch {
+            val response: Response<Post> = repository.getPost2(number)
+            myResponse2.value = response
+        }
+    }
+
+    val myResponse3: MutableLiveData<Response<List<Post>>> = MutableLiveData()
+
+    fun getPost3(userId: Int) {
+        viewModelScope.launch {
+            val response: Response<List<Post>> = repository.getPost3(userId)
+            myResponse3.value = response
+        }
+
+    }
+    val myResponse4: MutableLiveData<Response<List<Post>>> = MutableLiveData()
+
+    fun getPost4(userId: Int, options: Map<String, String>) {
+        viewModelScope.launch {
+            val response: Response<List<Post>> = repository.getPost4(userId, options)
+            myResponse4.value = response
+        }
+
     }
 }
