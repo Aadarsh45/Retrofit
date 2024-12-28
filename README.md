@@ -272,5 +272,218 @@ When the `LiveData` changes, update a `RecyclerView` to display the list of arti
 
 ---
 
-By following this tutorial, you can easily integrate Retrofit with MVVM in your Android app and handle real-world API scenarios efficiently.
+# Advanced Retrofit Usage with MVVM in Android
+
+This document extends the previous Retrofit setup with explanations on `@Path`, `@Query`, and `@QueryMap` annotations. It also demonstrates how to display data using a `RecyclerView`.
+
+---
+
+## **Retrofit Annotations**
+
+### 1. **`@Path` Annotation**
+
+The `@Path` annotation is used to replace parts of the URL with dynamic values. This is useful for endpoints that require variable segments.
+
+#### Example:
+
+```kotlin
+@GET("posts/{postNumber}")
+suspend fun getPost2(
+    @Path("postNumber") number: Int
+): Response<Post>
+```
+
+- **Explanation**: `{postNumber}` in the URL is replaced with the value passed to the `number` parameter.
+- **Usage**:
+
+```kotlin
+viewModel.getPost2(5)
+viewModel.myResponse2.observe(this, Observer { response ->
+    if (response.isSuccessful) {
+        Log.d("Response", response.body().toString())
+    }
+})
+```
+
+---
+
+### 2. **`@Query` Annotation**
+
+The `@Query` annotation appends query parameters to the URL. It is commonly used for filtering or pagination.
+
+#### Example:
+
+```kotlin
+@GET("posts")
+suspend fun getPost3(
+    @Query("userId") userId: Int
+): Response<List<Post>>
+```
+
+- **Explanation**: Adds `?userId=value` to the endpoint.
+- **Usage**:
+
+```kotlin
+viewModel.getPost3(3)
+viewModel.myResponse3.observe(this, Observer { response ->
+    if (response.isSuccessful) {
+        response.body()?.forEach {
+            Log.d("Response", it.toString())
+        }
+    }
+})
+```
+
+---
+
+### 3. **`@QueryMap` Annotation**
+
+The `@QueryMap` annotation allows passing a map of key-value pairs as query parameters.
+
+#### Example:
+
+```kotlin
+@GET("posts")
+suspend fun getPost4(
+    @Query("userId") userId: Int,
+    @QueryMap options: Map<String, String>
+): Response<List<Post>>
+```
+
+- **Explanation**: Combines `userId` and additional parameters from the `options` map into the request.
+- **Usage**:
+
+```kotlin
+val options: MutableMap<String, String> = mutableMapOf()
+options["_sort"] = "id"
+options["_order"] = "desc"
+
+viewModel.getPost4(2, options)
+viewModel.myResponse4.observe(this, Observer { response ->
+    if (response.isSuccessful) {
+        response.body()?.forEach {
+            Log.d("Response", it.toString())
+        }
+    }
+})
+```
+
+---
+
+## **Displaying Data in a RecyclerView**
+
+### 1. **Set Up RecyclerView in XML**
+
+```xml
+<androidx.recyclerview.widget.RecyclerView
+    android:id="@+id/recyclerView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:listitem="@layout/item_post" />
+```
+
+### 2. **Create a Layout for Each Item**
+
+`res/layout/item_post.xml`
+
+```xml
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Title" />
+
+    <TextView
+        android:id="@+id/tvBody"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Body" />
+
+</LinearLayout>
+```
+
+### 3. **Create a RecyclerView Adapter**
+
+`PostAdapter.kt`
+
+```kotlin
+package com.example.retrofit.adapter
+
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
+import com.example.retrofit.R
+import com.example.retrofit.model.Post
+import kotlinx.android.synthetic.main.item_post.view.*
+
+class PostAdapter : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
+
+    private var postList = emptyList<Post>()
+
+    class PostViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
+        return PostViewHolder(
+            LayoutInflater.from(parent.context).inflate(R.layout.item_post, parent, false)
+        )
+    }
+
+    override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
+        val currentPost = postList[position]
+        holder.itemView.tvTitle.text = currentPost.title
+        holder.itemView.tvBody.text = currentPost.body
+    }
+
+    override fun getItemCount(): Int {
+        return postList.size
+    }
+
+    fun setData(newList: List<Post>) {
+        postList = newList
+        notifyDataSetChanged()
+    }
+}
+```
+
+### 4. **Bind RecyclerView to Adapter**
+
+In `MainActivity`:
+
+```kotlin
+private fun setupRecyclerview() {
+    binding.recyclerView.adapter = myAdapter
+    binding.recyclerView.layoutManager = LinearLayoutManager(this)
+}
+
+viewModel.myResponse4.observe(this, { response ->
+    if (response.isSuccessful) {
+        response.body()?.let { myAdapter.setData(it) }
+    } else {
+        Toast.makeText(this, "Error: ${response.code()}", Toast.LENGTH_SHORT).show()
+    }
+})
+```
+
+---
+
+## **Real-Life Example**
+
+Imagine you're building a blogging app that shows posts filtered by user. Using `@Query` and `@QueryMap`, you can implement features such as:
+
+- Sorting posts by date or title.
+- Filtering posts by user ID.
+- Customizing the order of posts.
+
+By following this guide, you can efficiently fetch, filter, and display data using Retrofit and MVVM in Android.
+
+
 
