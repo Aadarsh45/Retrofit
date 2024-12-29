@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,22 +29,21 @@ class MainActivity : AppCompatActivity() {
         val viewModeFactory = MainViewModeFactory(repository)
         val viewModel = ViewModelProvider(this, viewModeFactory).get(MainViewModel::class.java)
 
-        val myPost : Post = Post(1, 1, "Steve", "Body...............")
+        viewModel.getPost("stephan-strange")
+        viewModel.myResponse.observe(
+            this, Observer {
+                response->
+                if(response.isSuccessful){
+                    Log.d("Response", response.body()?.userId.toString())
+                    Log.d("Response", response.headers().toString())
 
-        viewModel.pushPost2(myPost)
-        viewModel.myResponse.observe(this,  {
-            response->
-            if(response.isSuccessful) {
-                Log.d("Main", response.body()?.id.toString())
-                Log.d("Main", response.body()?.title.toString())
-                Log.d("Main", response.body()?.body.toString())
 
+                }
+                else{
+                    Toast.makeText(this, response.code(), Toast.LENGTH_SHORT).show()
+                }
             }
-            else{
-                Toast.makeText(this, response.code(), Toast.LENGTH_SHORT).show()
-            }
-
-        })
+        )
 
 
 

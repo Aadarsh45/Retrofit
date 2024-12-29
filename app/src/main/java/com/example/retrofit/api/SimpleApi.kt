@@ -7,6 +7,7 @@ import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -15,7 +16,7 @@ import retrofit2.http.QueryMap
 interface SimpleApi {
 
     @GET("posts/1")
-    suspend fun getPost(): Response<Post>             //for handelling exceptinon change post to Response<Post>
+    suspend fun getPost(@Header("Auth") auth: String): Response<Post>             //for handelling exceptinon change post to Response<Post>
 
     @GET("posts/{postNumber}")  // customization in path                //posts/$postnumber
     suspend fun getPost2(
